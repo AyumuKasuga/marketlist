@@ -30,6 +30,8 @@ class MainPage(webapp.RequestHandler):
 class AddPage(webapp.RequestHandler):
     def get(self):
         self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri)}))
+    def post(self):
+        print self.request.arguments()
     
 urls = [
     ('/', MainPage),

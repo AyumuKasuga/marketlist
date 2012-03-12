@@ -14,7 +14,12 @@ $(document).ready(function(){
     
     $('#addmore').click(function(){
         var nextitem = $('.item').size()+1;
-        $('.listitems').append("<div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span><input type='text' class='item' name='item-"+nextitem+"'></div>");
+        $('.listitems').append("<div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span><input type='text' class='item' name='item-"+nextitem+"'><a class='removerow' href='#'>[x]</a></div>");
+        updatenumrows();
+    });
+    
+    $('.removerow').live('click', function(){
+        $(this).parent().remove();
         updatenumrows();
     });
     
@@ -28,14 +33,15 @@ $(document).ready(function(){
         if($(this).val() != ''){
             var ctext = $(this).val();
             newctext = ctext.replace(/^(.*?)(| )( |:|-)(| )(\d+)(| |  )(|р|р.|руб|руб.|рублей|рубля|рубль)$/, "$1 - <b>$5 р.</b>");
-            $(this).replaceWith('<input type=\'hidden\' class=\'item\' name='+$(this).attr('name')+' value='+$(this).val()+'><span id='+$(this).attr('name')+' class=\'replacediv clickable\' href=\'#\'>'+newctext+'</span>');
+            valuetext = newctext.replace(/^(.*?) - <b>(\d+) р.<\/b>$/, "$1 [$2]");
+            $(this).replaceWith('<input type=\'hidden\' class=\'item\' name='+$(this).attr('name')+' value='+valuetext+'><span id='+$(this).attr('name')+' class=\'replacediv clickable\' href=\'#\'>'+newctext+'</span>');
         }
     });
     $('.replacediv').live('click', function(){
         var default_value = $(this).text();
         $('input[name='+$(this).attr('id')+']').remove();
         $(this).replaceWith('<input type=\'text\' class=\'item\' name='+$(this).attr('id')+'>');
-        $('input[name='+$(this).attr('id')+']').val(default_value);
+        $('input[name='+$(this).attr('id')+']').val(default_value).focus();
     });
     for (var i = 0; i < 5; i++) {
         $('#addmore').click();
