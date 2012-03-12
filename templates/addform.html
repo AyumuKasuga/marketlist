@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function(){
+    var today = new Date();
+    defaulttext = today.toDateString();
+    $('#title').val(defaulttext);
+    $('#title').focus(function(){
+        if($('#title').val() === defaulttext){$('#title').val('');}
+    });
+    $('#title').blur(function(){
+        if($('#title').val() === ''){$('#title').val(defaulttext);}
+    });
+    
+    $('#addmore').click(function(){
+        var nextitem = $('.item').size()+1;
+        $('.listitems').append("<div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span><input type='text' class='item' name='item-"+nextitem+"'></div>");
+        updatenumrows();
+    });
+    
+    function updatenumrows(){
+        $('.numrows').each(function(i, elem){
+                $(elem).text(i+1+'. ');
+        });
+    }
+    
+    $('.item').live('blur', function(){
+        if($(this).val() != ''){
+            var ctext = $(this).val();
+            newctext = ctext.replace(/^(.*?)(| )( |:|-)(| )(\d+)(| |  )(|р|р.|руб|руб.|рублей|рубля|рубль)$/, "$1 - <b>$5 р.</b>");
+            $(this).replaceWith('<input type=\'hidden\' class=\'item\' name='+$(this).attr('name')+' value='+$(this).val()+'><span id='+$(this).attr('name')+' class=\'replacediv clickable\' href=\'#\'>'+newctext+'</span>');
+        }
+    });
+    $('.replacediv').live('click', function(){
+        var default_value = $(this).text();
+        $('input[name='+$(this).attr('id')+']').remove();
+        $(this).replaceWith('<input type=\'text\' class=\'item\' name='+$(this).attr('id')+'>');
+        $('input[name='+$(this).attr('id')+']').val(default_value);
+    });
+    for (var i = 0; i < 5; i++) {
+        $('#addmore').click();
+    }
+});
+</script>
+{% endblock %}
+{% block css %}
+<style type="text/css">
+    .clickable {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+{% block body %}
+<form method='post'>
+Название: <input type='text' name='title' id='title'><br>
+<h2>Продукты:</h2><br>
+<div class='listitems'>
+</div>
+<div class='addmore'><a href='#' id='addmore'>+ еще</a></div>
+<input type='submit' value='Добавить'>
+</form><br>
+{% endblock %}

@@ -1,0 +1,14 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+            google.load("jquery", "1");
+        </script>
+            {% block js %}{% endblock %}
+            {% block css %}{% endblock %}
+    </head>
+    <div class='userbar'>{{userbar}}</div>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>
