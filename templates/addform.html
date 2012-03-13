@@ -33,7 +33,7 @@ $(document).ready(function(){
         if($(this).val() != ''){
             var ctext = $(this).val();
             newctext = ctext.replace(/^(.*?)(| )( |:|-)(| )(\d+)(| |  )(|р|р.|руб|руб.|рублей|рубля|рубль)$/, "$1 - <b>$5 р.</b>");
-            valuetext = newctext.replace(/^(.*?) - <b>(\d+) р.<\/b>$/, "$1 [$2]");
+            valuetext = newctext.replace(/^(.*?) - <b>(\d+) р.<\/b>$/, "$1[$2]");
             $(this).replaceWith('<input type=\'hidden\' class=\'item\' name='+$(this).attr('name')+' value='+valuetext+'><span id='+$(this).attr('name')+' class=\'replacediv clickable\' href=\'#\'>'+newctext+'</span>');
         }
     });
