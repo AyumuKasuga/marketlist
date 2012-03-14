@@ -24,10 +24,11 @@ class MainPage(webapp.RequestHandler):
                                                                          'userbar':user_bar(page = self.request.uri)}))
     
     def post(self):
-        newindex = NoteIndex()
-        newindex.title = self.request.get('title')
-        newindex.put()
-        self.redirect('/')
+        if(self.request.get('action') == 'remove'):
+            id = self.request.get('id')
+            q = NoteIndex.get_by_id(int(id))
+            if (q.user == users.get_current_user()):
+                q.delete()
 
 class AddPage(webapp.RequestHandler):
     def items_to_insert(self, x):
@@ -48,13 +49,13 @@ class AddPage(webapp.RequestHandler):
         arguments = self.request.arguments()
         title = self.request.get('title')
         self.items = []
-        print 1
         map(self.items_to_insert, arguments)
         n = NoteIndex(user=users.get_current_user(), title=title)
         n.put()
         inserts = []
         map(lambda x: inserts.append(NoteList(noteindex = n, name = x['name'], price = int(x['price']))), self.items)
         db.put(inserts)
+        self.redirect('/')
     
 urls = [
     ('/', MainPage),

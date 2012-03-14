@@ -1,8 +1,21 @@
 {% extends "base.html" %}
 
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $('.remove').click(function(){
+        id = $(this).attr('id').replace('remove-','')
+        $.post('/', {action: 'remove', id:id}, function(){
+            $('#remove-'+id).parent().remove();
+        });
+    }); 
+});
+</script>
+{% endblock %}
+
 {% block body %}
     {{content}}<br>
     {% for index in indexes %}
-        {{index.title}}<br>
+        <div class='listindex'>{{index.title}} <a href='#' class='remove' id='remove-{{index.key.id}}'>[x]</a></div>
     {% endfor %}
 {% endblock %}
