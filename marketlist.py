@@ -19,6 +19,7 @@ def user_bar(page):
 class MainPage(webapp.RequestHandler):
     def get(self):
         query = NoteIndex.all()
+ #       print dir(query[0])
         content = '<a href="/add">Добавить</a>'
         self.response.out.write(template.render('templates/index.html', {'content':content, 'indexes':query,
                                                                          'userbar':user_bar(page = self.request.uri)}))
@@ -26,9 +27,12 @@ class MainPage(webapp.RequestHandler):
     def post(self):
         if(self.request.get('action') == 'remove'):
             id = self.request.get('id')
-            q = NoteIndex.get_by_id(int(id))
-            if (q.user == users.get_current_user()):
-                q.delete()
+            qr = NoteIndex.get_by_id(int(id))
+            if (qr.user == users.get_current_user()):
+                nl = qr.notelist_set.fetch(1000)
+                for i in nl:
+                    i.delete()
+                qr.delete()
 
 class AddPage(webapp.RequestHandler):
     def items_to_insert(self, x):
@@ -56,10 +60,20 @@ class AddPage(webapp.RequestHandler):
         map(lambda x: inserts.append(NoteList(noteindex = n, name = x['name'], price = int(x['price']))), self.items)
         db.put(inserts)
         self.redirect('/')
-    
+
+class ViewPage(webapp.RequestHandler):
+    def get(self, id):
+        ni = NoteIndex.get_by_id(int(id))
+        if (ni.user == users.get_current_user()):
+            nl = ni.notelist_set.fetch(1000)
+            self.response.out.write(template.render('templates/view.html', {'userbar':user_bar(page = self.request.uri), 'items': nl}))
+
+        
+
 urls = [
     ('/', MainPage),
     ('/add', AddPage),
+    ('/view/(\d*)', ViewPage),
 ]
 application = webapp.WSGIApplication(urls,debug=True)
 

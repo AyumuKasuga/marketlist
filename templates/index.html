@@ -16,6 +16,6 @@ $(document).ready(function(){
 {% block body %}
     {{content}}<br>
     {% for index in indexes %}
-        <div class='listindex'>{{index.title}} <a href='#' class='remove' id='remove-{{index.key.id}}'>[x]</a></div>
+        <div class='listindex'><a href=/view/{{index.key.id}}>{{index.title}}</a> <a href='#' class='remove' id='remove-{{index.key.id}}'>[x]</a></div>
     {% endfor %}
 {% endblock %}
