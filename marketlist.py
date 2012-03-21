@@ -19,7 +19,6 @@ def user_bar(page):
 class MainPage(webapp.RequestHandler):
     def get(self):
         query = NoteIndex.all()
- #       print dir(query[0])
         content = '<a href="/add">Добавить</a>'
         self.response.out.write(template.render('templates/index.html', {'content':content, 'indexes':query,
                                                                          'userbar':user_bar(page = self.request.uri)}))
@@ -67,6 +66,11 @@ class ViewPage(webapp.RequestHandler):
         if (ni.user == users.get_current_user()):
             nl = ni.notelist_set.fetch(1000)
             self.response.out.write(template.render('templates/view.html', {'userbar':user_bar(page = self.request.uri), 'items': nl}))
+class AcPage(webapp.RequestHandler):
+    def get(self):
+        ac_items = ['aaa','bbb','ccc']
+        self.response.out.write(template.render('templates/ac.html', {'items':ac_items}))
+        
 
         
 
@@ -74,6 +78,7 @@ urls = [
     ('/', MainPage),
     ('/add', AddPage),
     ('/view/(\d*)', ViewPage),
+    ('/ac', AcPage),
 ]
 application = webapp.WSGIApplication(urls,debug=True)
 

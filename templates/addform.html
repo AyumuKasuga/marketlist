@@ -5,6 +5,19 @@ $(document).ready(function(){
     var today = new Date();
     defaulttext = today.toDateString();
     $('#title').val(defaulttext);
+    function update_sum(){
+        var sum = 0;
+        $('.item').each(
+            function(i,elem){
+                reg = /(.*?)\[(\d+)\]/;
+                match = reg.exec($(elem).val());
+                if (match != null){
+                    sum = sum + parseInt(match[2]);
+                }
+            }
+        );
+        $('.sumtext').text(sum);
+    }
     $('#title').focus(function(){
         if($('#title').val() === defaulttext){$('#title').val('');}
     });
@@ -21,6 +34,7 @@ $(document).ready(function(){
     $('.removerow').live('click', function(){
         $(this).parent().remove();
         updatenumrows();
+        update_sum();
     });
     
     function updatenumrows(){
@@ -35,6 +49,7 @@ $(document).ready(function(){
             newctext = ctext.replace(/^(.*?)(| )( |:|-)(| )(\d+)(| |  )(|р|р.|руб|руб.|рублей|рубля|рубль)$/, "$1 - <b>$5 р.</b>");
             valuetext = newctext.replace(/^(.*?) - <b>(\d+) р.<\/b>$/, "$1[$2]");
             $(this).replaceWith('<input type=\'hidden\' class=\'item\' name='+$(this).attr('name')+' value='+valuetext+'><span id='+$(this).attr('name')+' class=\'replacediv clickable\' href=\'#\'>'+newctext+'</span>');
+            update_sum();
         }
     });
     $('.replacediv').live('click', function(){
@@ -43,6 +58,14 @@ $(document).ready(function(){
         $(this).replaceWith('<input type=\'text\' class=\'item\' name='+$(this).attr('id')+'>');
         $('input[name='+$(this).attr('id')+']').val(default_value).focus();
     });
+    
+    $('.item').live('focus', function(event){
+    $(this).autocomplete({
+      source : '/ac',
+      minLength: 2,
+    });
+    });
+    
     for (var i = 0; i < 5; i++) {
         $('#addmore').click();
     }
@@ -63,6 +86,7 @@ $(document).ready(function(){
 <div class='listitems'>
 </div>
 <div class='addmore'><a href='#' id='addmore'>+ еще</a></div>
+<div>Сумма: <b><span class='sumtext'></span></b></div>
 <input type='submit' value='Добавить'>
 </form><br>
 {% endblock %}
