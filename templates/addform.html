@@ -43,7 +43,7 @@ $(document).ready(function(){
         });
     }
     
-    $('.item').live('blur', function(){
+    function tospan(){
         if($(this).val() != ''){
             var ctext = $(this).val();
             newctext = ctext.replace(/^(.*?)(| )( |:|-)(| )(\d+)(| |  )(|р|р.|руб|руб.|рублей|рубля|рубль)$/, "$1 - <b>$5 р.</b>");
@@ -51,7 +51,8 @@ $(document).ready(function(){
             $(this).replaceWith('<input type=\'hidden\' class=\'item\' name='+$(this).attr('name')+' value='+valuetext+'><span id='+$(this).attr('name')+' class=\'replacediv clickable\' href=\'#\'>'+newctext+'</span>');
             update_sum();
         }
-    });
+    }
+    $('.item').live('blur', tospan);
     $('.replacediv').live('click', function(){
         var default_value = $(this).text();
         $('input[name='+$(this).attr('id')+']').remove();
@@ -63,12 +64,19 @@ $(document).ready(function(){
     $(this).autocomplete({
       source : '/ac',
       minLength: 2,
+      open: function(){$('.item').die('blur');},
+      close: function(){$('.item').live('blur', tospan);}
     });
     });
     
     for (var i = 0; i < 5; i++) {
         $('#addmore').click();
     }
+    $('#item-1').autocomplete({
+      source : '/ac',
+      minLength: 2,
+    });
+    
 });
 </script>
 {% endblock %}

@@ -8,5 +8,6 @@ class NoteIndex(db.Model):
 class NoteList(db.Model):
     noteindex = db.ReferenceProperty(NoteIndex)
     name = db.StringProperty()
+    prefix = db.StringProperty()
     price = db.IntegerProperty()
     
