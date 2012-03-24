@@ -3,19 +3,76 @@
 {% block js %}
 <script type="text/javascript">
 $(document).ready(function(){
-    $('.remove').click(function(){
-        id = $(this).attr('id').replace('remove-','')
+    
+    function refreshmylists(){
+  //  $('#mylists').html('please wail...');
+    $.ajax({
+    url: '/getmylists',
+    success: function(data) {
+    $('#mylists').html(data);
+    }
+    });
+    }
+    refreshmylists();
+    
+    $('.remove').live('click', function(){
+        id = $(this).attr('id').replace('remove-','');
         $.post('/', {action: 'remove', id:id}, function(){
-            $('#remove-'+id).parent().remove();
+            refreshmylists();
         });
-    }); 
+    });
+    
+    $('.clone').live('click', function(){
+        id = $(this).attr('id').replace('clone-','');
+        $('#dialog').html('<input type="text" id="newname">');
+        $('#newname').val($('#view-'+id).text()+' copy');
+        $('#dialog').dialog(
+            {
+		modal: true,
+                title: 'Введите новое название',
+		buttons: {
+		"Клонировать": function() {
+                    $.post('/', {action: 'clone', id:id, newname: $('#newname').val()}, function(){
+                        refreshmylists();
+                    });
+		    $(this).dialog( "close" );
+		},
+		Cancel: function() {
+		    $(this).dialog( "close" );
+		}
+		}
+	    }
+        );
+    });
+    
+    $('.rename').live('click', function(){
+        id = $(this).attr('id').replace('rename-','');
+        $('#dialog').html('<input type="text" id="newname">');
+        $('#newname').val($('#view-'+id).text());
+        $('#dialog').dialog(
+            {
+		modal: true,
+                title: 'Введите новое название',
+		buttons: {
+		"Сохранить": function() {
+                    $.post('/', {action: 'rename', id:id, newname: $('#newname').val()}, function(){
+                        refreshmylists();
+                    });
+		    $(this).dialog( "close" );
+		},
+		Cancel: function() {
+		    $(this).dialog( "close" );
+		}
+		}
+	    }
+    );
+    });
 });
 </script>
 {% endblock %}
 
 {% block body %}
     {{content}}<br>
-    {% for index in indexes %}
-        <div class='listindex'><a href=/view/{{index.key.id}}>{{index.title}}</a> <a href='#' class='remove' id='remove-{{index.key.id}}'>[x]</a></div>
-    {% endfor %}
+<div id='mylists'></div>
+<div id='dialog'></div>
 {% endblock %}

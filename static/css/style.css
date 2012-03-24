@@ -1,0 +1,14 @@
+input {
+border-style: solid;
+border-width: 1px;
+border-radius: 4px;
+border-color:#737373;
+padding: 3px;
+}
+input:hover{
+border-color: black;
+}
+input:focus{
+    background-color: #FFF799;
+}
+​

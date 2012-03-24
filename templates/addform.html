@@ -2,8 +2,12 @@
 {% block js %}
 <script type="text/javascript">
 $(document).ready(function(){
+    {% if edit %}
+    defaulttext = '{{editfields.title}}'
+    {% else %}
     var today = new Date();
     defaulttext = today.toDateString();
+    {% endif %}
     $('#title').val(defaulttext);
     function update_sum(){
         var sum = 0;
@@ -18,12 +22,14 @@ $(document).ready(function(){
         );
         $('.sumtext').text(sum);
     }
+    {% if edit %}{% else %}
     $('#title').focus(function(){
         if($('#title').val() === defaulttext){$('#title').val('');}
     });
     $('#title').blur(function(){
         if($('#title').val() === ''){$('#title').val(defaulttext);}
     });
+    {% endif %}
     
     $('#addmore').click(function(){
         var nextitem = $('.item').size()+1;
@@ -68,14 +74,19 @@ $(document).ready(function(){
       close: function(){$('.item').live('blur', tospan);}
     });
     });
-    
+{% if edit %}
+{% for item in editfields.items %}
+    $('#addmore').click();
+    $('.item[value=]').val('{{item.name}} - {{item.price}}');
+{% endfor %}
+    $('.item').blur();
+{% else %}
     for (var i = 0; i < 5; i++) {
         $('#addmore').click();
     }
-    $('#item-1').autocomplete({
-      source : '/ac',
-      minLength: 2,
-    });
+{% endif %}
+    
+    
     
 });
 </script>
@@ -95,6 +106,11 @@ $(document).ready(function(){
 </div>
 <div class='addmore'><a href='#' id='addmore'>+ еще</a></div>
 <div>Сумма: <b><span class='sumtext'></span></b></div>
+{% if edit %}
+<input type='hidden' name='id' value='{{editfields.id}}'>
+<input type='submit' value='Сохранить'>
+{% else %}
 <input type='submit' value='Добавить'>
+{% endif %}
 </form><br>
 {% endblock %}

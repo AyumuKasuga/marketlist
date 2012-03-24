@@ -36,8 +36,37 @@ class MainPage(webapp.RequestHandler):
                 for i in nl:
                     i.delete()
                 qr.delete()
+        elif (self.request.get('action') == 'clone'):
+            id = self.request.get('id')
+            newname = self.request.get('newname')
+            if newname is u'':
+                return self.error(500)
+            n = NoteIndex(user=users.get_current_user(), title=newname)
+            n.put()
+            ni = NoteIndex.get_by_id(int(id))
+            nl = ni.notelist_set.fetch(1000)
+            inserts = []
+            map(lambda x: inserts.append(NoteList(noteindex=n, name = x.name, price=int(x.price), prefix=x.name[0:2].lower())), nl)
+            db.put(inserts)
+        elif (self.request.get('action') == 'rename'):
+            id = self.request.get('id')
+            newname = self.request.get('newname')
+            if newname is u'':
+                return self.error(500)
+            ni = NoteIndex.get_by_id(int(id))
+            ni.title = newname
+            ni.put()
 
-class AddPage(webapp.RequestHandler):
+class GetMyLists(webapp.RequestHandler):
+    def get(self):
+        query = NoteIndex.all()
+        self.response.out.write(template.render('templates/noteslist.html', {'indexes':query}))
+
+
+class PrepareToInsert():
+    def __init__(self, request):
+        self.items = []
+        self.request = request
     def items_to_insert(self, x):
         if re.match("item-(\d+)", x):
             value = self.request.get(x)
@@ -50,20 +79,48 @@ class AddPage(webapp.RequestHandler):
                     price = 0
                 self.items.append({'name':value, 'price':price})
 
+
+class AddPage(webapp.RequestHandler):
+
     def get(self):
         self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri)}))
+
     def post(self):
         arguments = self.request.arguments()
         title = self.request.get('title')
         self.items = []
-        map(self.items_to_insert, arguments)
+        pre = PrepareToInsert(self.request)
+        map(pre.items_to_insert, arguments)
         n = NoteIndex(user=users.get_current_user(), title=title)
         n.put()
         inserts = []
-        map(lambda x: inserts.append(NoteList(noteindex=n, name = x['name'], price=int(x['price']), prefix=x['name'][0:2].lower())), self.items)
+        map(lambda x: inserts.append(NoteList(noteindex=n, name = x['name'], price=int(x['price']), prefix=x['name'][0:2].lower())), pre.items)
         db.put(inserts)
         self.redirect('/')
 
+
+class EditPage(webapp.RequestHandler):
+    def get(self, id):
+        ni = NoteIndex.get_by_id(int(id))
+        nl = ni.notelist_set.fetch(1000)
+        editfields = {'title': ni.title, 'id': int(id), 'items':nl}
+        self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri), 'edit':True, 'editfields': editfields}))
+    
+    def post(self, id):
+        id = self.request.get('id')
+        title = self.request.get('title')
+        ni = NoteIndex.get_by_id(int(id))
+        ni.title = title
+        ni.put()
+        db.delete(ni.notelist_set.fetch(1000))
+        arguments = self.request.arguments()
+        self.items = []
+        pre = PrepareToInsert(self.request)
+        map(pre.items_to_insert, arguments)
+        inserts = []
+        map(lambda x: inserts.append(NoteList(noteindex=ni, name = x['name'], price=int(x['price']), prefix=x['name'][0:2].lower())), pre.items)
+        db.put(inserts)
+        self.redirect('/')
 
 class ViewPage(webapp.RequestHandler):
     def get(self, id):
@@ -82,8 +139,9 @@ class AcPage(webapp.RequestHandler):
             ac_items = []
             acquery = NoteList.gql('WHERE prefix = :1', prefix_ac)
             for q in acquery.fetch(1000):
-                ac_items.append((q.name, q.price, q.key().id()))
+                ac_items.append((q.name, q.price))
             if len(ac_items) > 0:
+                ac_items = list(set(ac_items))
                 memcache.set(key=u'ac_' + prefix_ac, value=ac_items, time=1800)
         func_search = partial(self.search_filter, ac)
         final_ac_items = filter(func_search, ac_items)
@@ -102,6 +160,8 @@ urls = [
     ('/add', AddPage),
     ('/view/(\d*)', ViewPage),
     ('/ac', AcPage),
+    ('/getmylists', GetMyLists),
+    ('/edit/(\d*)', EditPage),
 ]
 application = webapp.WSGIApplication(urls,debug=True)
 
