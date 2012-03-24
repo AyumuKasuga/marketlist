@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class='listitems'>
+{% for item in items %}
+    {{item.name}} - {{item.price}} <br>
+{% endfor %}
+</div>
+{% endblock %}
