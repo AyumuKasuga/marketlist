@@ -46,7 +46,7 @@ class MainPage(webapp.RequestHandler):
             ni = NoteIndex.get_by_id(int(id))
             nl = ni.notelist_set.fetch(1000)
             inserts = []
-            map(lambda x: inserts.append(NoteList(noteindex=n, name=x.name, price=int(x.price), prefix=x.name[0:2].lower())), nl)
+            map(lambda x: inserts.append(NoteList(noteindex=n, name = x.name, price=int(x.price), prefix=x.name[0:2].lower())), nl)
             db.put(inserts)
         elif (self.request.get('action') == 'rename'):
             id = self.request.get('id')
@@ -60,14 +60,13 @@ class MainPage(webapp.RequestHandler):
 class GetMyLists(webapp.RequestHandler):
     def get(self):
         query = NoteIndex.all()
-        self.response.out.write(template.render('templates/noteslist.html', {'indexes': query}))
+        self.response.out.write(template.render('templates/noteslist.html', {'indexes':query}))
 
 
 class PrepareToInsert():
     def __init__(self, request):
         self.items = []
         self.request = request
-
     def items_to_insert(self, x):
         if re.match("item-(\d+)", x):
             value = self.request.get(x)
@@ -84,7 +83,7 @@ class PrepareToInsert():
 class AddPage(webapp.RequestHandler):
 
     def get(self):
-        self.response.out.write(template.render('templates/addform.html', {'userbar': user_bar(page = self.request.uri)}))
+        self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri)}))
 
     def post(self):
         arguments = self.request.arguments()
