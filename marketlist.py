@@ -15,17 +15,17 @@ from model import NoteIndex, NoteList
 def user_bar(page):
     user = users.get_current_user()
     if user:
-        return user.nickname()+'<a href='+users.create_logout_url(page)+'> Logout</a>'
+        return user.nickname() + '<a href=' + users.create_logout_url(page) + '> Logout</a>'
     else:
-        return 'Guest'+'<a href='+users.create_login_url(page)+'> Login</a>'
+        return 'Guest' + '<a href=' + users.create_login_url(page) + '> Login</a>'
 
 
 class MainPage(webapp.RequestHandler):
     def get(self):
         query = NoteIndex.all()
         content = '<a href="/add">Добавить</a>'
-        self.response.out.write(template.render('templates/index.html', {'content':content, 'indexes':query,
-                                                                         'userbar':user_bar(page = self.request.uri)}))
+        self.response.out.write(template.render('templates/index.html', {'content': content, 'indexes': query,
+                                                                         'userbar': user_bar(page=self.request.uri)}))
 
     def post(self):
         if(self.request.get('action') == 'remove'):
@@ -46,7 +46,7 @@ class MainPage(webapp.RequestHandler):
             ni = NoteIndex.get_by_id(int(id))
             nl = ni.notelist_set.fetch(1000)
             inserts = []
-            map(lambda x: inserts.append(NoteList(noteindex=n, name = x.name, price=int(x.price), prefix=x.name[0:2].lower())), nl)
+            map(lambda x: inserts.append(NoteList(noteindex=n, name=x.name, price=int(x.price), prefix=x.name[0:2].lower())), nl)
             db.put(inserts)
         elif (self.request.get('action') == 'rename'):
             id = self.request.get('id')
@@ -60,13 +60,14 @@ class MainPage(webapp.RequestHandler):
 class GetMyLists(webapp.RequestHandler):
     def get(self):
         query = NoteIndex.all()
-        self.response.out.write(template.render('templates/noteslist.html', {'indexes':query}))
+        self.response.out.write(template.render('templates/noteslist.html', {'indexes': query}))
 
 
 class PrepareToInsert():
     def __init__(self, request):
         self.items = []
         self.request = request
+
     def items_to_insert(self, x):
         if re.match("item-(\d+)", x):
             value = self.request.get(x)
@@ -83,7 +84,7 @@ class PrepareToInsert():
 class AddPage(webapp.RequestHandler):
 
     def get(self):
-        self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri)}))
+        self.response.out.write(template.render('templates/addform.html', {'userbar': user_bar(page = self.request.uri)}))
 
     def post(self):
         arguments = self.request.arguments()
