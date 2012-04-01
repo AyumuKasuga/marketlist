@@ -1,0 +1,6 @@
+<b>{{title}}</b><br>
+<table>
+{% for item in items %}
+    <tr><td>{{forloop.counter}}. {{item.name}} ({{item.price}} р.)</td><td><input type='checkbox'></td></tr>
+{% endfor %}
+</table>

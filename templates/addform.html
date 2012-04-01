@@ -33,12 +33,12 @@ $(document).ready(function(){
     
     $('#addmore').click(function(){
         var nextitem = $('.item').size()+1;
-        $('.listitems').append("<div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span><input type='text' class='item' name='item-"+nextitem+"'><a class='removerow' href='#'>[x]</a></div>");
+        $('.listitems').append("<tr><td><div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span></td><td><input type='text' class='item' name='item-"+nextitem+"' autocomplete='off'><a class='removerow' href='#'><img src='/static/img/minus-button.png'></a></div></td><tr>");
         updatenumrows();
     });
     
     $('.removerow').live('click', function(){
-        $(this).parent().remove();
+        $(this).parent().parent().remove();
         updatenumrows();
         update_sum();
     });
@@ -100,17 +100,17 @@ $(document).ready(function(){
 {% endblock %}
 {% block body %}
 <form method='post'>
-Название: <input type='text' name='title' id='title'><br>
-<h2>Продукты:</h2><br>
+<span id='title-label'>Название: </span><input type='text' name='title' id='title' autocomplete='off'><br><br>
+Продукты:
+<table>
 <div class='listitems'>
 </div>
-<div class='addmore'><a href='#' id='addmore'>+ еще</a></div>
-<div>Сумма: <b><span class='sumtext'></span></b></div>
+</table>
+<div class='addmore'><a href='#' id='addmore'><img src='/static/img/plus-button.png'> Ещё!</a></div>
+<div>Сумма: <b><span class='sumtext'></span></b> р.</div>
 {% if edit %}
 <input type='hidden' name='id' value='{{editfields.id}}'>
-<input type='submit' value='Сохранить'>
-{% else %}
-<input type='submit' value='Добавить'>
 {% endif %}
+<br><button type='submit'><img src='/static/img/disk-black.png'> Сохранить</button>
 </form><br>
 {% endblock %}

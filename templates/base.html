@@ -1,18 +1,27 @@
-<html>
+<!DOCTYPE html>
+<html lang='ru'>
     <head>
+        <meta charset='UTF-8' />
         <script type="text/javascript" src="https://www.google.com/jsapi"></script>
         <script type="text/javascript">
             google.load("jquery", "1");
             google.load("jqueryui", "1");
         </script>
         <script type="text/javascript" src="/static/js/bar.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                adduserinfo('{{userbar}}');
+            });
+        </script>
             {% block js %}{% endblock %}
         <link rel="stylesheet" href="/static/css/jquery-ui-1.8.18.custom.css" type="text/css" media="all" />
         <link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
             {% block css %}{% endblock %}
     </head>
-    <div class='userbar'>{{userbar}}</div>
     <body>
+        <div id='body'>
         {% block body %}{% endblock %}
+        </div>
+        <div id='footer'>"Список покупок" альфа-версия!</div>
     </body>
 </html>

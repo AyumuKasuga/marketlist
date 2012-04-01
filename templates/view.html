@@ -1,9 +1,26 @@
 {% extends "base.html" %}
 
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function(){
+    viewsum = 0;
+    $('.view-price-num').each(
+            function(i,elem){
+                    viewsum = viewsum + parseInt($(elem).text());
+            }
+        );
+        $('.sumtext').text(viewsum);
+});
+</script>
+{% endblock %}
+
 {% block body %}
-<div class='listitems'>
+<div class='listitems'><table>
 {% for item in items %}
-    {{item.name}} - {{item.price}} <br>
+    <tr class='view-item'><td class='view-numrow'>{{forloop.counter}}. </td><td class='view-name'>{{item.name}}</td>
+        <td class='view-price'><b><span class='view-price-num'>{{item.price}}</span></b> р. </td></tr>
 {% endfor %}
-</div>
+</table></div><br>
+<div>Сумма: <b><span class='sumtext'></span></b> р.</div><br>
+<a href='{{anonlink}}'>Ссылка для мобильного устройства (без авторизации)</a>
 {% endblock %}

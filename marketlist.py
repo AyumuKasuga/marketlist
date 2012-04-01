@@ -12,21 +12,32 @@ from google.appengine.api import memcache
 from model import NoteIndex, NoteList
 
 
+def check_login(f):
+    def check(*args, **kwargs):
+        user = users.get_current_user()
+        if user:
+            return f(*args, **kwargs)
+        else:
+            return args[0].redirect(users.create_login_url(args[0].request.uri))
+    return check
+
+
 def user_bar(page):
     user = users.get_current_user()
     if user:
-        return user.nickname() + '<a href=' + users.create_logout_url(page) + '> Logout</a>'
+        return user.nickname() + ' <a href="' + users.create_logout_url(page) + '"> Logout</a>'
     else:
-        return 'Guest' + '<a href=' + users.create_login_url(page) + '> Login</a>'
+        return 'Guest' + '<a href="' + users.create_login_url(page) + '"> Login</a>'
 
 
 class MainPage(webapp.RequestHandler):
+    @check_login
     def get(self):
         query = NoteIndex.all()
-        content = '<a href="/add">Добавить</a>'
-        self.response.out.write(template.render('templates/index.html', {'content': content, 'indexes': query,
+        self.response.out.write(template.render('templates/index.html', {'indexes': query,
                                                                          'userbar': user_bar(page=self.request.uri)}))
 
+    @check_login
     def post(self):
         if(self.request.get('action') == 'remove'):
             id = self.request.get('id')
@@ -57,16 +68,18 @@ class MainPage(webapp.RequestHandler):
             ni.title = newname
             ni.put()
 
+
 class GetMyLists(webapp.RequestHandler):
     def get(self):
         query = NoteIndex.all()
-        self.response.out.write(template.render('templates/noteslist.html', {'indexes':query}))
+        self.response.out.write(template.render('templates/noteslist.html', {'indexes': query}))
 
 
 class PrepareToInsert():
     def __init__(self, request):
         self.items = []
         self.request = request
+
     def items_to_insert(self, x):
         if re.match("item-(\d+)", x):
             value = self.request.get(x)
@@ -77,14 +90,15 @@ class PrepareToInsert():
                     value = r.groups()[0]
                 else:
                     price = 0
-                self.items.append({'name':value, 'price':price})
+                self.items.append({'name': value, 'price': price})
 
 
 class AddPage(webapp.RequestHandler):
-
+    @check_login
     def get(self):
-        self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri)}))
+        self.response.out.write(template.render('templates/addform.html', {'userbar': user_bar(page=self.request.uri)}))
 
+    @check_login
     def post(self):
         arguments = self.request.arguments()
         title = self.request.get('title')
@@ -100,12 +114,14 @@ class AddPage(webapp.RequestHandler):
 
 
 class EditPage(webapp.RequestHandler):
+    @check_login
     def get(self, id):
         ni = NoteIndex.get_by_id(int(id))
         nl = ni.notelist_set.fetch(1000)
         editfields = {'title': ni.title, 'id': int(id), 'items':nl}
         self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri), 'edit':True, 'editfields': editfields}))
-    
+
+    @check_login
     def post(self, id):
         id = self.request.get('id')
         title = self.request.get('title')
@@ -122,12 +138,22 @@ class EditPage(webapp.RequestHandler):
         db.put(inserts)
         self.redirect('/')
 
+
 class ViewPage(webapp.RequestHandler):
+    @check_login
     def get(self, id):
         ni = NoteIndex.get_by_id(int(id))
         if (ni.user == users.get_current_user()):
             nl = ni.notelist_set.fetch(1000)
-            self.response.out.write(template.render('templates/view.html', {'userbar':user_bar(page = self.request.uri), 'items': nl}))
+            self.response.out.write(template.render('templates/view.html', {'userbar':user_bar(page = self.request.uri), 'items': nl, 'anonlink': '/mview/'+str(ni.key())}))
+
+
+class AnonViewPage(webapp.RequestHandler):
+    def get(self, id):
+        key = db.Key(encoded=id)
+        ni = NoteIndex.get_by_id(key.id())
+        nl = ni.notelist_set.fetch(1000)
+        self.response.out.write(template.render('templates/anonview.html', {'items': nl, 'title': ni.title}))
 
 
 class AcPage(webapp.RequestHandler):
@@ -146,24 +172,25 @@ class AcPage(webapp.RequestHandler):
         func_search = partial(self.search_filter, ac)
         final_ac_items = filter(func_search, ac_items)
         self.response.out.write(template.render('templates/ac.html', {'items': final_ac_items}))
-    
+
     def search_filter(self, strfind, string):
         if string[0].find(strfind) is not -1:
             return True
         else:
             return False
 
-        
 
 urls = [
     ('/', MainPage),
     ('/add', AddPage),
     ('/view/(\d*)', ViewPage),
+    ('/mview/(.*)', AnonViewPage),
     ('/ac', AcPage),
     ('/getmylists', GetMyLists),
     ('/edit/(\d*)', EditPage),
 ]
 application = webapp.WSGIApplication(urls,debug=True)
+
 
 def main():
     run_wsgi_app(application)
