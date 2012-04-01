@@ -54,11 +54,12 @@ body {
 }
 #footer{
     width:100%;
-    margin-top: 200px;
     height: 30px;
     background-color: #242424;
     color: white;
     padding: 10px;
+    position: absolute;
+    bottom: 0px;
 }
 #body{
     padding: 10px;
