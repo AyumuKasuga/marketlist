@@ -5,6 +5,7 @@ class NoteIndex(db.Model):
     user = db.UserProperty()
     date = db.DateTimeProperty(auto_now_add=True)
     title = db.StringProperty()
+    url = db.LinkProperty()
 
 
 class NoteList(db.Model):

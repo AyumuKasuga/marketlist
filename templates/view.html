@@ -10,11 +10,30 @@ $(document).ready(function(){
             }
         );
         $('.sumtext').text(viewsum);
+    
+    $('#shortlink-button').click(function(){
+        $('#shortlink').val('Подождите...');
+        $.post('/shorturl', {id:'{{id}}'}, function(data){
+            $('#shortlink').val(data);
+            $('#shortlink-button').remove();
+        });
+    });
+    $('#shortlink').click(function(){
+        $(this).select();
+    });
+    $('#sendme').click(function(){
+        $.post('/sendme', {id:'{{id}}'}, function(data){
+            $('#sendme').remove();
+            $('#sendmediv').text('Письмо ушло!');
+        });
+    });
+    
 });
 </script>
 {% endblock %}
 
 {% block body %}
+<h1>{{title}}</h1>
 <div class='listitems'><table>
 {% for item in items %}
     <tr class='view-item'><td class='view-numrow'>{{forloop.counter}}. </td><td class='view-name'>{{item.name}}</td>
@@ -22,5 +41,7 @@ $(document).ready(function(){
 {% endfor %}
 </table></div><br>
 <div>Сумма: <b><span class='sumtext'></span></b> р.</div><br>
-<a href='{{anonlink}}'>Ссылка для мобильного устройства (без авторизации)</a>
+Ссылка для мобильного устройства (без авторизации):<br>
+<input type='text' id='shortlink' value='{{anonlink}}'>{% if longlink %}<button id='shortlink-button'>сократить</button>{% endif %}
+<br><div id='sendmediv'><button id='sendme'>Отправить мне на E-mail</button></div>
 {% endblock %}

@@ -1,0 +1,10 @@
+{{title}}
+
+{% for item in items %}
+    {{forloop.counter}}. {{item.name}} ({{item.price}} р.)
+{% endfor %}
+
+Ссылка на оригинал: {{link}}
+
+--
+Маленький робот для покупок :)

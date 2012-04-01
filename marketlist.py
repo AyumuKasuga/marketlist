@@ -8,7 +8,9 @@ from google.appengine.ext.webapp import template
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.api import memcache
+from google.appengine.api import mail
 
+from shorturl import get_short_link
 from model import NoteIndex, NoteList
 
 
@@ -33,7 +35,7 @@ def user_bar(page):
 class MainPage(webapp.RequestHandler):
     @check_login
     def get(self):
-        query = NoteIndex.all()
+        query = NoteIndex.all().filter('user =', users.get_current_user())
         self.response.out.write(template.render('templates/index.html', {'indexes': query,
                                                                          'userbar': user_bar(page=self.request.uri)}))
 
@@ -52,6 +54,9 @@ class MainPage(webapp.RequestHandler):
             newname = self.request.get('newname')
             if newname is u'':
                 return self.error(500)
+            nc = NoteIndex.get_by_id(int(id))
+            if nc.user != users.get_current_user():
+                return self.error(403)
             n = NoteIndex(user=users.get_current_user(), title=newname)
             n.put()
             ni = NoteIndex.get_by_id(int(id))
@@ -65,13 +70,15 @@ class MainPage(webapp.RequestHandler):
             if newname is u'':
                 return self.error(500)
             ni = NoteIndex.get_by_id(int(id))
+            if ni.user != users.get_current_user():
+                return self.error(403)
             ni.title = newname
             ni.put()
 
 
 class GetMyLists(webapp.RequestHandler):
     def get(self):
-        query = NoteIndex.all()
+        query = NoteIndex.all().filter('user =', users.get_current_user())
         self.response.out.write(template.render('templates/noteslist.html', {'indexes': query}))
 
 
@@ -117,6 +124,8 @@ class EditPage(webapp.RequestHandler):
     @check_login
     def get(self, id):
         ni = NoteIndex.get_by_id(int(id))
+        if ni.user != users.get_current_user():
+            return self.error(403)
         nl = ni.notelist_set.fetch(1000)
         editfields = {'title': ni.title, 'id': int(id), 'items':nl}
         self.response.out.write(template.render('templates/addform.html', {'userbar':user_bar(page = self.request.uri), 'edit':True, 'editfields': editfields}))
@@ -126,6 +135,8 @@ class EditPage(webapp.RequestHandler):
         id = self.request.get('id')
         title = self.request.get('title')
         ni = NoteIndex.get_by_id(int(id))
+        if ni.user != users.get_current_user():
+            return self.error(403)
         ni.title = title
         ni.put()
         db.delete(ni.notelist_set.fetch(1000))
@@ -143,9 +154,20 @@ class ViewPage(webapp.RequestHandler):
     @check_login
     def get(self, id):
         ni = NoteIndex.get_by_id(int(id))
+        if ni is None:
+            return self.error(404)
+        if ni.user != users.get_current_user():
+            return self.error(403)
+        if ni.url is not None:
+            anonlink = ni.url
+            longlink = False
+        else:
+            anonlink = self.request.host_url + '/mview/' + str(ni.key())
+            longlink = True
         if (ni.user == users.get_current_user()):
             nl = ni.notelist_set.fetch(1000)
-            self.response.out.write(template.render('templates/view.html', {'userbar':user_bar(page = self.request.uri), 'items': nl, 'anonlink': '/mview/'+str(ni.key())}))
+            self.response.out.write(template.render('templates/view.html', {'userbar': user_bar(page=self.request.uri), 'items': nl, 'anonlink': anonlink,
+                                                                            'title': ni.title, 'id': id, 'longlink': longlink}))
 
 
 class AnonViewPage(webapp.RequestHandler):
@@ -160,15 +182,16 @@ class AcPage(webapp.RequestHandler):
     def get(self):
         ac = self.request.get('term')
         prefix_ac = unicode(ac[0:2].lower())
-        ac_items = memcache.get(key=u'ac_' + prefix_ac)
+        ac_items = memcache.get(key=u'ac_' + str(users.get_current_user()) + '_' + prefix_ac)
         if ac_items is None:
             ac_items = []
             acquery = NoteList.gql('WHERE prefix = :1', prefix_ac)
             for q in acquery.fetch(1000):
-                ac_items.append((q.name, q.price))
+                if users.get_current_user() == q.noteindex.user:
+                    ac_items.append((q.name, q.price))
             if len(ac_items) > 0:
                 ac_items = list(set(ac_items))
-                memcache.set(key=u'ac_' + prefix_ac, value=ac_items, time=1800)
+                memcache.set(key=u'ac_' + str(users.get_current_user()) + '_' + prefix_ac, value=ac_items, time=300)
         func_search = partial(self.search_filter, ac)
         final_ac_items = filter(func_search, ac_items)
         self.response.out.write(template.render('templates/ac.html', {'items': final_ac_items}))
@@ -180,6 +203,45 @@ class AcPage(webapp.RequestHandler):
             return False
 
 
+class ShortLinkPage(webapp.RequestHandler):
+    def post(self):
+        id = self.request.get('id')
+        ni = NoteIndex.get_by_id(int(id))
+        if ni.user != users.get_current_user():
+            return self.error(403)
+        longlink = self.request.host_url + '/mview/' + str(ni.key())
+        shortlink = get_short_link(longlink)
+        if shortlink is not False:
+            ni.url = shortlink
+            ni.put()
+        if ni.user == users.get_current_user():
+            self.response.out.write(template.render('templates/shortlink.html', {'link': shortlink}))
+        else:
+            return self.error(403)
+
+
+class SendMe(webapp.RequestHandler):
+    def post(self):
+        id = self.request.get('id')
+        ni = NoteIndex.get_by_id(int(id))
+        if ni is None:
+            return self.error(404)
+        if ni.user != users.get_current_user():
+            return self.error(403)
+        nl = ni.notelist_set.fetch(1000)
+        if ni.url is not None:
+            link = ni.url
+        else:
+            link = self.request.host_url + '/mview/' + str(ni.key())
+        body = template.render('templates/sendme.html', {'link': link, 'title': ni.title,
+                                                         'items': nl})
+        mail.send_mail(sender="ListForShop <notify@listforshop.appspotmail.com>",
+              to=users.get_current_user().email(),
+              subject="Ваш список покупок " + str(ni.title),
+              reply_to='bps@dzen.eu',
+              body=body)
+
+
 urls = [
     ('/', MainPage),
     ('/add', AddPage),
@@ -188,8 +250,10 @@ urls = [
     ('/ac', AcPage),
     ('/getmylists', GetMyLists),
     ('/edit/(\d*)', EditPage),
+    ('/shorturl', ShortLinkPage),
+    ('/sendme', SendMe),
 ]
-application = webapp.WSGIApplication(urls,debug=True)
+application = webapp.WSGIApplication(urls, debug=True)
 
 
 def main():

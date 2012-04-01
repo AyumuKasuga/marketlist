@@ -1,5 +1,5 @@
 {% for index in indexes %}
-    <div class='listindex'><a href='/view/{{index.key.id}}' id='view-{{index.key.id}}'>{{index.title}}</a> (sum)
+    <div class='listindex'><a href='/view/{{index.key.id}}' id='view-{{index.key.id}}'>{{index.title}}</a> 
     <a href='#' class='remove' id='remove-{{index.key.id}}'><img src='/static/img/minus-button.png' title='удалить'></a>
     <a href='#' class='clone' id='clone-{{index.key.id}}'><img src='/static/img/arrow-split.png' title='клонировать'></a>
     <a href='#' class='rename' id='rename-{{index.key.id}}'><img src='/static/img/ui-text-field.png' title='переименовать'></a>

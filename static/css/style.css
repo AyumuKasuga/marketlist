@@ -53,14 +53,22 @@ body {
     background-color: #F0F0F0;
 }
 #footer{
-    width:100%;
-    height: 30px;
     background-color: #242424;
     color: white;
     padding: 10px;
-    position: absolute;
-    bottom: 0px;
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:30px;
 }
 #body{
     padding: 10px;
+}
+a{
+    color: #0096AD;
+    text-decoration: none;
+}
+a:hover{
+    color: #FFBC21;
+    border-bottom: 1px solid;
 }
