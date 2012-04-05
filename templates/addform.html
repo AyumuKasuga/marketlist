@@ -33,7 +33,8 @@ $(document).ready(function(){
     
     $('#addmore').click(function(){
         var nextitem = $('.item').size()+1;
-        $('.listitems').append("<tr><td><div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span></td><td><input type='text' class='item' name='item-"+nextitem+"' autocomplete='off'><a class='removerow' href='#'><img src='/static/img/minus-button.png'></a></div></td><tr>");
+        $('.listitems').append("<tr><td><div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span></td><td><input type='text' class='item' name='item-"+nextitem+"' autocomplete='off'><a class='removerow' style='cursor:pointer'><img src='/static/img/minus-button.png'></a></div></td><tr>");
+        $('.item[type=text]:first').focus();
         updatenumrows();
     });
     
