@@ -34,7 +34,7 @@ $(document).ready(function(){
     $('#addmore').click(function(){
         var nextitem = $('.item').size()+1;
         $('.listitems').append("<tr><td><div class='itemdiv' id='itemdiv-"+nextitem+"'><span class='numrows'></span></td><td><input type='text' class='item' name='item-"+nextitem+"' autocomplete='off'><a class='removerow' style='cursor:pointer'><img src='/static/img/minus-button.png'></a></div></td><tr>");
-        $('.item[type=text]:first').focus();
+        {% if edit %}{% else %}$('.item[type=text]:first').focus();{% endif %}
         updatenumrows();
     });
     
@@ -80,7 +80,7 @@ $(document).ready(function(){
     $('#addmore').click();
     $('.item[value=]').val('{{item.name}} - {{item.price}}');
 {% endfor %}
-    $('.item').blur();
+    $('.item').each(function(num, obj){$(obj).blur();});
 {% else %}
     for (var i = 0; i < 5; i++) {
         $('#addmore').click();
