@@ -237,7 +237,7 @@ class SendMe(webapp.RequestHandler):
                                                          'items': nl})
         mail.send_mail(sender="ListForShop <notify@listforshop.appspotmail.com>",
               to=users.get_current_user().email(),
-              subject="Ваш список покупок " + str(ni.title),
+              subject=u"Ваш список покупок " + ni.title,
               reply_to='bps@dzen.eu',
               body=body)
 
